@@ -18,6 +18,7 @@ A fully client-side web app that allows you to download all mods from a **Modrin
 - Filters by:
   - Minecraft version
   - Mod loader (Fabric, Forge, Quilt, NeoForge, etc.)
+  - Mods & Plugins & Data packs, Shaders, Resource packs
 - Live progress tracking with logs and stats
 - Avoids duplicates
 - Error handling for missing versions/files
