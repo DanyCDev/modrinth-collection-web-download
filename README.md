@@ -5,7 +5,8 @@ A fully client-side web app that allows you to download all mods from a **Modrin
 
 ---
 
-<img width="1566" height="1817" alt="obrázok" src="https://github.com/user-attachments/assets/d3dbb582-3f74-4677-ba36-027b7d106049" />
+<img width="1242" height="1729" alt="obrázok" src="https://github.com/user-attachments/assets/2b7634a5-b3a9-4980-992d-81204e3dcd36" />
+
 
 ---
 
