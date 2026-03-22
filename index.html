@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modrinth Collection Downloader</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
+          integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-2: #22263a;
+      --border: #2e3347;
+      --accent: #1bd96a;
+      --accent-dark: #15b356;
+      --text: #e2e6f0;
+      --text-muted: #8892a4;
+      --error: #f87171;
+      --warn: #fbbf24;
+      --success: #34d399;
+      --radius: 10px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.45);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 64px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    header .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    header .logo svg {
+      width: 40px;
+      height: 40px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent) 0%, #5bf5a8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 6px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      width: 100%;
+      max-width: 620px;
+      box-shadow: var(--shadow);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text);
+      font-size: 0.97rem;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    input::placeholder {
+      color: #4a5268;
+    }
+
+    select option {
+      background: var(--surface-2);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0a1a10;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-dark);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-download {
+      background: #1a6aff;
+      color: #fff;
+      margin-top: 12px;
+    }
+
+    .btn-download:hover:not(:disabled) {
+      background: #1458d6;
+    }
+
+    /* Progress section */
+    #progress-section {
+      margin-top: 28px;
+      display: none;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .progress-header h2 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 14px;
+      font-size: 0.82rem;
+    }
+
+    .stat { display: flex; align-items: center; gap: 4px; }
+    .stat .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .dot-success { background: var(--success); }
+    .dot-skip    { background: var(--warn); }
+    .dot-error   { background: var(--error); }
+
+    .progress-track {
+      height: 5px;
+      background: var(--surface-2);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+      transition: width 0.3s;
+      width: 0%;
+    }
+
+    #log {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      height: 280px;
+      overflow-y: auto;
+      font-family: 'Consolas', 'Fira Code', monospace;
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+
+    .log-line { margin: 1px 0; }
+    .log-ok    { color: var(--success); }
+    .log-skip  { color: var(--warn); }
+    .log-error { color: var(--error); }
+    .log-dep   { color: #a78bfa; }
+    .log-info  { color: var(--text-muted); }
+    .log-head  { color: var(--accent); font-weight: 600; }
+
+    #summary {
+      display: none;
+      margin-top: 16px;
+      padding: 14px 18px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    #summary h3 { margin-bottom: 8px; font-size: 1rem; }
+    #summary ul { padding-left: 18px; line-height: 1.8; }
+    #summary .failed-list { color: var(--error); }
+
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 3px solid rgba(27,217,106,0.25);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer {
+      margin-top: 40px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <h1>Modrinth Collection Downloader</h1>
+  </div>
+  <p>Download all mods from a Modrinth collection - entirely in your browser.</p>
+</header>
+
+<div class="card">
+  <div class="form-group">
+    <label for="collection-input">Collection ID or URL</label>
+    <input
+      id="collection-input"
+      type="text"
+      placeholder="e.g. YV97U1kk or https://modrinth.com/collection/YV97U1kk"
+      autocomplete="off"
+      spellcheck="false"
+    />
+  </div>
+
+  <div id="form-error" style="display:none; color:var(--error); font-size:0.88rem; margin-bottom:12px; padding:8px 12px; background:rgba(248,113,113,0.1); border-radius:6px; border:1px solid rgba(248,113,113,0.3);"></div>
+
+  <div class="row">
+    <div class="form-group">
+      <label for="mc-version">Minecraft Version</label>
+      <select id="mc-version" disabled>
+        <option value="">Loading versions…</option>
+      </select>
+      <button type="button" id="mc-version-retry" style="display:none; margin-top:6px; background:none; border:1px solid var(--border); border-radius:6px; color:var(--text-muted); font-size:0.82rem; padding:4px 10px; cursor:pointer;" onclick="loadMcVersions()">↺ Retry</button>
+    </div>
+    <div class="form-group">
+      <label for="loader">Mod Loader</label>
+      <select id="loader">
+        <option value="fabric">Fabric</option>
+        <option value="forge">Forge</option>
+        <option value="quilt">Quilt</option>
+        <option value="neoforge">NeoForge</option>
+        <option value="liteloader">LiteLoader</option>
+        <option value="modloader">ModLoader</option>
+        <option value="rift">Rift</option>
+      </select>
+    </div>
+  </div>
+
+  <button id="start-btn" class="btn btn-primary" onclick="startDownload()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    Download Collection
+  </button>
+
+  <div id="progress-section">
+    <div class="progress-header">
+      <h2 id="progress-title">Processing…</h2>
+      <div class="stats-bar">
+        <span class="stat"><span class="dot dot-success"></span><span id="stat-ok">0</span> downloaded</span>
+        <span class="stat"><span class="dot dot-skip"></span><span id="stat-skip">0</span> skipped</span>
+        <span class="stat"><span class="dot dot-error"></span><span id="stat-err">0</span> failed</span>
+      </div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div id="log"></div>
+    <div id="summary"></div>
+    <button id="dl-btn" class="btn btn-download" style="display:none" onclick="triggerZipDownload()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Save mods.zip
+    </button>
+  </div>
+</div>
+
+<footer>
+  <div>Made by <a href="https://github.com/DanyCDev">DanyCDev</a> ● <a href="https://github.com/DanyCDev/modrinth-collection-web-download">Please, give us a star on GitHub</a></div>
+  <div>Powered by the <a href="https://docs.modrinth.com/" target="_blank" rel="noopener">Modrinth API</a>.
+  All downloads happen directly in your browser.</div>
+</footer>
+
+<script>
+'use strict';
+
+const MODRINTH_API = 'https://api.modrinth.com';
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+function extractCollectionId(input) {
+  const m = input.match(/(?:https?:\/\/)?(?:www\.)?modrinth\.com\/collection\/([^/?#\s]+)/);
+  return m ? m[1] : input.trim();
+}
+
+async function apiGet(path) {
+  const res = await fetch(MODRINTH_API + path, {
+    headers: { 'User-Agent': 'modrinth-web-collection/1.0 (github.com/DanyCDev/modrinth-web-collection)' }
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${path}`);
+  return res.json();
+}
+
+async function fetchBinary(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
+  return res.arrayBuffer();
+}
+
+// ── MC Versions ──────────────────────────────────────────────────────────────
+
+// https://mc-versions-api.net/api/java returns either a plain array of version
+// strings or an object with a "result" / "versions" array property.
+// Version strings are validated before being inserted into the dropdown to guard
+// against unexpected API responses (e.g. "1.21.1", "22w43a", "1.20-pre1").
+const MC_VERSION_RE = /^[0-9a-zA-Z][0-9a-zA-Z._\-+]{0,30}$/;
+
+async function loadMcVersions() {
+  const sel = document.getElementById('mc-version');
+  const retryBtn = document.getElementById('mc-version-retry');
+  sel.innerHTML = '<option value="">Loading versions…</option>';
+  sel.disabled = true;
+  retryBtn.style.display = 'none';
+  try {
+    const res = await fetch('https://mc-versions-api.net/api/java');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const raw = Array.isArray(data) ? data : (data.result ?? data.versions ?? []);
+    const versions = raw.filter(v => {
+      const id = typeof v === 'string' ? v : (v.id ?? v.version ?? '');
+      return MC_VERSION_RE.test(id);
+    });
+    if (!versions.length) throw new Error('Empty version list');
+    sel.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Select a version…';
+    sel.appendChild(placeholder);
+    versions.forEach(v => {
+      const id = typeof v === 'string' ? v : (v.id ?? v.version ?? String(v));
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = id;
+      sel.appendChild(opt);
+    });
+    sel.disabled = false;
+  } catch (e) {
+    sel.innerHTML = '<option value="">Failed to load versions</option>';
+    sel.disabled = true;
+    retryBtn.style.display = 'inline-block';
+    console.error('Could not load MC versions:', e);
+  }
+}
+
+// ── Logging / UI ─────────────────────────────────────────────────────────────
+
+const logEl       = document.getElementById('log');
+const fillEl      = document.getElementById('progress-fill');
+const statOk      = document.getElementById('stat-ok');
+const statSkip    = document.getElementById('stat-skip');
+const statErr     = document.getElementById('stat-err');
+const titleEl     = document.getElementById('progress-title');
+const summaryEl   = document.getElementById('summary');
+const dlBtn       = document.getElementById('dl-btn');
+const startBtn    = document.getElementById('start-btn');
+
+function log(msg, cls = '') {
+  const div = document.createElement('div');
+  div.className = 'log-line' + (cls ? ' ' + cls : '');
+  div.textContent = msg;
+  logEl.appendChild(div);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+const stats = { ok: 0, skip: 0, err: 0, total: 0, done: 0 };
+
+function updateStats() {
+  statOk.textContent   = stats.ok;
+  statSkip.textContent = stats.skip;
+  statErr.textContent  = stats.err;
+  if (stats.total > 0) {
+    fillEl.style.width = Math.round((stats.done / stats.total) * 100) + '%';
+  }
+}
+
+// ── Core logic ───────────────────────────────────────────────────────────────
+
+let zip;
+let processedMods;   // Set<string> – prevents circular dependency loops
+let failedMods;      // Array<string>
+
+async function getCollection(collectionId) {
+  return apiGet(`/v3/collection/${collectionId}`);
+}
+
+async function getModVersions(modId) {
+  return apiGet(`/v2/project/${modId}/version`);
+}
+
+async function getModProject(modId) {
+  return apiGet(`/v2/project/${modId}`);
+}
+
+function getLatestVersion(versions, mcVersion, loader) {
+  return versions.find(v =>
+    v.game_versions.includes(mcVersion) &&
+    v.loaders.map(l => l.toLowerCase()).includes(loader.toLowerCase())
+  ) || null;
+}
+
+async function getModName(modId) {
+  try {
+    const proj = await getModProject(modId);
+    return proj.title || proj.slug || modId;
+  } catch {
+    return modId;
+  }
+}
+
+/**
+ * Download one mod (and its required dependencies) into the JSZip instance.
+ * Returns 'ok' | 'skip' | 'error'
+ */
+async function downloadMod(modId, mcVersion, loader, isDep = false, parentId = null) {
+  if (processedMods.has(modId)) return 'skip';
+  processedMods.add(modId);
+
+  const prefix = isDep ? '  [DEP] ' : '';
+
+  let versions;
+  try {
+    versions = await getModVersions(modId);
+  } catch (e) {
+    log(`${prefix}ERROR: Could not fetch versions for ${modId}: ${e.message}`, 'log-error');
+    stats.err++;
+    failedMods.push(modId);
+    return 'error';
+  }
+
+  const latest = getLatestVersion(versions, mcVersion, loader);
+  if (!latest) {
+    const name = await getModName(modId);
+    const display = name !== modId ? `${name} (${modId})` : modId;
+    const parentNote = isDep && parentId ? ` [required by ${parentId}]` : '';
+    log(`${prefix}NOT FOUND: No ${mcVersion} + ${loader} version for ${display}${parentNote}`, 'log-error');
+    stats.err++;
+    failedMods.push(display);
+    return 'error';
+  }
+
+  // Process required dependencies first
+  const deps = (latest.dependencies || []).filter(d => d.dependency_type === 'required' && d.project_id);
+  for (const dep of deps) {
+    if (!processedMods.has(dep.project_id)) {
+      stats.total++;
+      updateStats();
+      await downloadMod(dep.project_id, mcVersion, loader, true, modId);
+      stats.done++;
+      updateStats();
+    }
+  }
+
+  // Find primary file
+  const primaryFile = (latest.files || []).find(f => f.primary);
+  if (!primaryFile) {
+    const name = await getModName(modId);
+    const display = name !== modId ? `${name} (${modId})` : modId;
+    log(`${prefix}ERROR: No primary file found for ${display}`, 'log-error');
+    stats.err++;
+    failedMods.push(display);
+    return 'error';
+  }
+
+  const filename  = primaryFile.filename;
+  // Embed modId into filename (same convention as the Python script)
+  const parts     = filename.split('.');
+  parts.splice(parts.length - 1, 0, modId);
+  const savedName = parts.join('.');
+
+  // Skip if already in zip
+  if (zip.files[savedName]) {
+    if (isDep) {
+      log(`${prefix}SKIP: ${savedName} already in archive`, 'log-skip');
+    }
+    stats.skip++;
+    return 'skip';
+  }
+
+  const name = await getModName(modId);
+  const display = name !== modId ? `${name} (${modId})` : modId;
+
+  try {
+    log(`${prefix}Downloading ${display} → ${savedName}…`, isDep ? 'log-dep' : 'log-info');
+    const data = await fetchBinary(primaryFile.url);
+    zip.file(savedName, data);
+    log(`${prefix}✓ ${display}`, 'log-ok');
+    stats.ok++;
+    return 'ok';
+  } catch (e) {
+    log(`${prefix}ERROR downloading ${display}: ${e.message}`, 'log-error');
+    stats.err++;
+    failedMods.push(display);
+    return 'error';
+  }
+}
+
+// ── Entry point ───────────────────────────────────────────────────────────────
+
+let zipBlob = null;
+
+async function startDownload() {
+  const collectionRaw = document.getElementById('collection-input').value.trim();
+  const mcVersion     = document.getElementById('mc-version').value.trim();
+  const loader        = document.getElementById('loader').value;
+  const formError     = document.getElementById('form-error');
+
+  formError.style.display = 'none';
+
+  if (!collectionRaw) {
+    formError.textContent = 'Please enter a Collection ID or URL.';
+    formError.style.display = 'block';
+    document.getElementById('collection-input').focus();
+    return;
+  }
+  if (!mcVersion) {
+    formError.textContent = 'Please select a Minecraft version.';
+    formError.style.display = 'block';
+    document.getElementById('mc-version').focus();
+    return;
+  }
+
+  const collectionId = extractCollectionId(collectionRaw);
+
+  // Reset state
+  zip           = new JSZip();
+  processedMods = new Set();
+  failedMods    = [];
+  zipBlob       = null;
+  Object.assign(stats, { ok: 0, skip: 0, err: 0, total: 0, done: 0 });
+  logEl.innerHTML    = '';
+  summaryEl.style.display = 'none';
+  summaryEl.innerHTML     = '';
+  dlBtn.style.display     = 'none';
+  updateStats();
+
+  document.getElementById('progress-section').style.display = 'block';
+  startBtn.disabled = true;
+  startBtn.innerHTML = '<span class="spinner"></span> Processing…';
+  titleEl.textContent = 'Fetching collection…';
+
+  try {
+    log(`Fetching collection ${collectionId}…`, 'log-head');
+    const collection = await getCollection(collectionId);
+    const collectionName = collection.name || collectionId;
+    log(`Collection: "${collectionName}" — ${collection.projects?.length ?? 0} project(s)`, 'log-head');
+
+    const projectIds = collection.projects || [];
+    if (projectIds.length === 0) {
+      log('No projects found in this collection.', 'log-error');
+      return;
+    }
+
+    stats.total = projectIds.length;
+    titleEl.textContent = `Downloading ${projectIds.length} mod(s) for MC ${mcVersion} + ${loader}…`;
+    updateStats();
+
+    // Download mods sequentially to keep API request rate reasonable
+    for (const modId of projectIds) {
+      await downloadMod(modId, mcVersion, loader, false, null);
+      stats.done++;
+      updateStats();
+    }
+
+    // Build summary
+    titleEl.textContent = 'Done!';
+    const downloaded = stats.ok;
+    const skipped    = stats.skip;
+    const failed     = stats.err;
+
+    summaryEl.style.display = 'block';
+    let summaryHtml = `<h3>Summary</h3><ul>
+      <li><strong>${downloaded}</strong> mod(s) downloaded</li>
+      <li><strong>${skipped}</strong> mod(s) skipped (already present or duplicates)</li>
+      <li><strong>${failed}</strong> mod(s) failed</li>`;
+    if (failedMods.length > 0) {
+      summaryHtml += `<li class="failed-list">Failed: ${failedMods.map(m => `<em>${m}</em>`).join(', ')}</li>`;
+    }
+    summaryHtml += '</ul>';
+    summaryEl.innerHTML = summaryHtml;
+
+    if (downloaded > 0) {
+      log('Compressing archive…', 'log-info');
+      zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+      log(`Archive ready (${(zipBlob.size / 1024 / 1024).toFixed(2)} MB).`, 'log-ok');
+      dlBtn.style.display = 'flex';
+    } else {
+      log('No files were downloaded — nothing to save.', 'log-info');
+    }
+
+  } catch (e) {
+    log(`Fatal error: ${e.message}`, 'log-error');
+    titleEl.textContent = 'Error';
+  } finally {
+    startBtn.disabled = false;
+    startBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download Collection`;
+  }
+}
+
+const BLOB_URL_REVOKE_DELAY_MS = 60_000;
+
+function triggerZipDownload() {
+  if (!zipBlob) return;
+  const collectionId = extractCollectionId(document.getElementById('collection-input').value.trim()) || 'mods';
+  const url  = URL.createObjectURL(zipBlob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `${collectionId}-mods.zip`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), BLOB_URL_REVOKE_DELAY_MS);
+}
+
+loadMcVersions();
+</script>
+</body>
+</html>
