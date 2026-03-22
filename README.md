@@ -9,7 +9,7 @@ A fully client-side web app that allows you to download all mods from a **Modrin
 
 ---
 
-## 🚀 Features
+## Features
 
 - Accepts Modrinth collection ID or URL
 - Downloads all mods in a collection and puts them into a ZIP file
