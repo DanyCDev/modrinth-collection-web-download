@@ -1,4 +1,4 @@
-f<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -269,6 +269,32 @@ f<!DOCTYPE html>
 
     footer a { color: var(--accent); text-decoration: none; }
     footer a:hover { text-decoration: underline; }
+
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 20px;
+      margin-top: 6px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--text);
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      accent-color: var(--accent);
+      cursor: pointer;
+      width: 15px;
+      height: 15px;
+    }
   </style>
 </head>
 <body>
@@ -319,6 +345,21 @@ f<!DOCTYPE html>
         <option value="velocity">Velocity</option>
         <option value="waterfall">Waterfall</option>
       </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Include in download</label>
+    <div class="checkbox-group">
+      <label class="checkbox-label">
+        <input type="checkbox" id="include-mods" checked> Mods, Plugins &amp; Datapacks
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="include-resourcepacks" checked> Resource Packs
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="include-shaders" checked> Shaders
+      </label>
     </div>
   </div>
 
@@ -480,24 +521,31 @@ async function getModProject(modId) {
   return apiGet(`/v2/project/${modId}`);
 }
 
-function getLatestVersion(versions, mcVersion, loader) {
+// Returns the best matching version.
+// For non-mod types (resourcepack, shader, datapack) we skip the loader check
+// because those project types use their own loader tags (e.g. "iris", "datapack").
+function getLatestVersion(versions, mcVersion, loader, ignoreLoader = false) {
   return versions.find(v =>
     v.game_versions.includes(mcVersion) &&
-    v.loaders.map(l => l.toLowerCase()).includes(loader.toLowerCase())
+    (ignoreLoader || v.loaders.map(l => l.toLowerCase()).includes(loader.toLowerCase()))
   ) || null;
 }
 
-async function getModName(modId) {
-  try {
-    const proj = await getModProject(modId);
-    return proj.title || proj.slug || modId;
-  } catch {
-    return modId;
-  }
-}
+// Map Modrinth project_type → { folder, checkboxId }
+const DEFAULT_TYPE_INFO = { folder: 'mods_plugins', checkboxId: 'include-mods' };
+const PROJECT_TYPE_MAP = {
+  mod:          { folder: 'mods_plugins',   checkboxId: 'include-mods' },
+  plugin:       { folder: 'mods_plugins',   checkboxId: 'include-mods' },
+  resourcepack: { folder: 'resource_packs', checkboxId: 'include-resourcepacks' },
+  datapack:     { folder: 'mods_plugins',   checkboxId: 'include-mods' },
+  shader:       { folder: 'shaders',        checkboxId: 'include-shaders' },
+};
+
+// Types that don't need loader filtering (they carry their own loader tags)
+const LOADER_AGNOSTIC_TYPES = new Set(['resourcepack', 'datapack', 'shader']);
 
 /**
- * Download one mod (and its required dependencies) into the JSZip instance.
+ * Download one project (and its required dependencies) into the JSZip instance.
  * Returns 'ok' | 'skip' | 'error'
  */
 async function downloadMod(modId, mcVersion, loader, isDep = false, parentId = null) {
@@ -506,22 +554,58 @@ async function downloadMod(modId, mcVersion, loader, isDep = false, parentId = n
 
   const prefix = isDep ? '  [DEP] ' : '';
 
+  // Fetch project metadata (needed for type, display name, and modpack detection)
+  let project;
+  try {
+    project = await getModProject(modId);
+  } catch (e) {
+    log(`${prefix}ERROR: Could not fetch project info for ${modId}: ${e.message}`, 'log-error');
+    stats.err++;
+    failedMods.push(modId);
+    return 'error';
+  }
+
+  const name    = project.title || project.slug || modId;
+  const display = name !== modId ? `${name} (${modId})` : modId;
+  const projectType = (project.project_type || 'mod').toLowerCase();
+
+  // Modpacks (.mrpack) cannot be downloaded — show as error
+  if (projectType === 'modpack') {
+    log(`${prefix}ERROR: ${display} is a modpack (.mrpack) — cannot download`, 'log-error');
+    stats.err++;
+    failedMods.push(display);
+    return 'error';
+  }
+
+  // Determine output folder; default to mods_plugins for unknown types
+  const typeInfo = PROJECT_TYPE_MAP[projectType] ?? DEFAULT_TYPE_INFO;
+
+  // Respect category checkboxes — skip if the user deselected this category
+  const checkboxEl = document.getElementById(typeInfo.checkboxId);
+  if (!checkboxEl) {
+    console.warn(`Checkbox element not found for id "${typeInfo.checkboxId}" (project type: ${projectType})`);
+  }
+  if (checkboxEl && !checkboxEl.checked) {
+    log(`${prefix}SKIP: ${display} (${projectType} — category disabled)`, 'log-skip');
+    stats.skip++;
+    return 'skip';
+  }
+
   let versions;
   try {
     versions = await getModVersions(modId);
   } catch (e) {
     log(`${prefix}ERROR: Could not fetch versions for ${modId}: ${e.message}`, 'log-error');
     stats.err++;
-    failedMods.push(modId);
+    failedMods.push(display);
     return 'error';
   }
 
-  const latest = getLatestVersion(versions, mcVersion, loader);
+  const ignoreLoader = LOADER_AGNOSTIC_TYPES.has(projectType);
+  const latest = getLatestVersion(versions, mcVersion, loader, ignoreLoader);
   if (!latest) {
-    const name = await getModName(modId);
-    const display = name !== modId ? `${name} (${modId})` : modId;
     const parentNote = isDep && parentId ? ` [required by ${parentId}]` : '';
-    log(`${prefix}NOT FOUND: No ${mcVersion} + ${loader} version for ${display}${parentNote}`, 'log-error');
+    log(`${prefix}NOT FOUND: No ${mcVersion} + ${ignoreLoader ? 'any loader' : loader} version for ${display}${parentNote}`, 'log-error');
     stats.err++;
     failedMods.push(display);
     return 'error';
@@ -542,19 +626,26 @@ async function downloadMod(modId, mcVersion, loader, isDep = false, parentId = n
   // Find primary file
   const primaryFile = (latest.files || []).find(f => f.primary);
   if (!primaryFile) {
-    const name = await getModName(modId);
-    const display = name !== modId ? `${name} (${modId})` : modId;
     log(`${prefix}ERROR: No primary file found for ${display}`, 'log-error');
     stats.err++;
     failedMods.push(display);
     return 'error';
   }
 
-  const filename  = primaryFile.filename;
+  const filename = primaryFile.filename;
+
+  // Extra safety: refuse .mrpack files even if the project type wasn't 'modpack'
+  if (filename.toLowerCase().endsWith('.mrpack')) {
+    log(`${prefix}ERROR: ${display} produces a .mrpack file — cannot download`, 'log-error');
+    stats.err++;
+    failedMods.push(display);
+    return 'error';
+  }
+
   // Embed modId into filename (same convention as the Python script)
   const parts     = filename.split('.');
   parts.splice(parts.length - 1, 0, modId);
-  const savedName = parts.join('.');
+  const savedName = `${typeInfo.folder}/${parts.join('.')}`;
 
   // Skip if already in zip
   if (zip.files[savedName]) {
@@ -564,9 +655,6 @@ async function downloadMod(modId, mcVersion, loader, isDep = false, parentId = n
     stats.skip++;
     return 'skip';
   }
-
-  const name = await getModName(modId);
-  const display = name !== modId ? `${name} (${modId})` : modId;
 
   try {
     log(`${prefix}Downloading ${display} → ${savedName}…`, isDep ? 'log-dep' : 'log-info');
