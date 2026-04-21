@@ -434,10 +434,9 @@ async function fetchBinary(url) {
 
 // ── MC Versions ──────────────────────────────────────────────────────────────
 
-// https://mc-versions-api.net/api/java returns either a plain array of version
-// strings or an object with a "result" / "versions" array property.
-// Version strings are validated before being inserted into the dropdown to guard
-// against unexpected API responses (e.g. "1.21.1", "22w43a", "1.20-pre1").
+// https://launchermeta.mojang.com/mc/game/version_manifest.json returns an object
+// with a "versions" array. Each entry has an "id" string and a "type" string
+// ("release", "snapshot", "old_beta", "old_alpha"). Only release versions are shown.
 const MC_VERSION_RE = /^[0-9a-zA-Z][0-9a-zA-Z._\-+]{0,30}$/;
 
 async function loadMcVersions() {
@@ -447,14 +446,11 @@ async function loadMcVersions() {
   sel.disabled = true;
   retryBtn.style.display = 'none';
   try {
-    const res = await fetch('https://mc-versions-api.net/api/java');
+    const res = await fetch('https://launchermeta.mojang.com/mc/game/version_manifest.json');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    const raw = Array.isArray(data) ? data : (data.result ?? data.versions ?? []);
-    const versions = raw.filter(v => {
-      const id = typeof v === 'string' ? v : (v.id ?? v.version ?? '');
-      return MC_VERSION_RE.test(id);
-    });
+    const versions = (data.versions ?? [])
+      .filter(v => v.type === 'release' && MC_VERSION_RE.test(v.id));
     if (!versions.length) throw new Error('Empty version list');
     sel.innerHTML = '';
     const placeholder = document.createElement('option');
@@ -462,10 +458,9 @@ async function loadMcVersions() {
     placeholder.textContent = 'Select a version…';
     sel.appendChild(placeholder);
     versions.forEach(v => {
-      const id = typeof v === 'string' ? v : (v.id ?? v.version ?? String(v));
       const opt = document.createElement('option');
-      opt.value = id;
-      opt.textContent = id;
+      opt.value = v.id;
+      opt.textContent = v.id;
       sel.appendChild(opt);
     });
     sel.disabled = false;
