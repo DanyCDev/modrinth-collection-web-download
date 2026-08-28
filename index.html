@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Modrinth Collection Downloader</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
-          integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg=="
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer"></script>
+    integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <style>
     :root {
       --bg: #0f1117;
@@ -22,10 +22,14 @@
       --warn: #fbbf24;
       --success: #34d399;
       --radius: 10px;
-      --shadow: 0 4px 24px rgba(0,0,0,0.45);
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       background: var(--bg);
@@ -94,7 +98,8 @@
       margin-bottom: 6px;
     }
 
-    input, select {
+    input,
+    select {
       width: 100%;
       background: var(--surface-2);
       border: 1px solid var(--border);
@@ -106,7 +111,8 @@
       transition: border-color 0.15s;
     }
 
-    input:focus, select:focus {
+    input:focus,
+    select:focus {
       border-color: var(--accent);
     }
 
@@ -191,13 +197,29 @@
       font-size: 0.82rem;
     }
 
-    .stat { display: flex; align-items: center; gap: 4px; }
-    .stat .dot {
-      width: 8px; height: 8px; border-radius: 50%;
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
-    .dot-success { background: var(--success); }
-    .dot-skip    { background: var(--warn); }
-    .dot-error   { background: var(--error); }
+
+    .stat .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .dot-success {
+      background: var(--success);
+    }
+
+    .dot-skip {
+      background: var(--warn);
+    }
+
+    .dot-error {
+      background: var(--error);
+    }
 
     .progress-track {
       height: 5px;
@@ -227,13 +249,34 @@
       line-height: 1.6;
     }
 
-    .log-line { margin: 1px 0; }
-    .log-ok    { color: var(--success); }
-    .log-skip  { color: var(--warn); }
-    .log-error { color: var(--error); }
-    .log-dep   { color: #a78bfa; }
-    .log-info  { color: var(--text-muted); }
-    .log-head  { color: var(--accent); font-weight: 600; }
+    .log-line {
+      margin: 1px 0;
+    }
+
+    .log-ok {
+      color: var(--success);
+    }
+
+    .log-skip {
+      color: var(--warn);
+    }
+
+    .log-error {
+      color: var(--error);
+    }
+
+    .log-dep {
+      color: #a78bfa;
+    }
+
+    .log-info {
+      color: var(--text-muted);
+    }
+
+    .log-head {
+      color: var(--accent);
+      font-weight: 600;
+    }
 
     #summary {
       display: none;
@@ -245,25 +288,40 @@
       font-size: 0.9rem;
     }
 
-    #summary h3 { margin-bottom: 8px; font-size: 1rem; }
-    #summary ul { padding-left: 18px; line-height: 1.8; }
-    #summary .failed-list { color: var(--error); }
+    #summary h3 {
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+
+    #summary ul {
+      padding-left: 18px;
+      line-height: 1.8;
+    }
+
+    #summary .failed-list {
+      color: var(--error);
+    }
 
     .spinner {
       display: inline-block;
-      width: 18px; height: 18px;
-      border: 3px solid rgba(27,217,106,0.25);
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(27, 217, 106, 0.25);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
     }
 
     .btn-download .spinner {
-      border-color: rgba(255,255,255,0.3);
+      border-color: rgba(255, 255, 255, 0.3);
       border-top-color: #fff;
     }
 
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
     footer {
       margin-top: 40px;
@@ -272,8 +330,14 @@
       text-align: center;
     }
 
-    footer a { color: var(--accent); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
 
     .checkbox-group {
       display: flex;
@@ -302,497 +366,524 @@
     }
   </style>
 </head>
+
 <body>
 
-<header>
-  <div class="logo">
-    <h1>Modrinth Collection Downloader</h1>
-  </div>
-  <p>Download all mods from a Modrinth collection - entirely in your browser.</p>
-</header>
+  <header>
+    <div class="logo">
+      <h1>Modrinth Collection Downloader</h1>
+    </div>
+    <p>Download all mods from a Modrinth collection - entirely in your browser.</p>
+  </header>
 
-<div class="card">
-  <div class="form-group">
-    <label for="collection-input">Collection ID or URL</label>
-    <input
-      id="collection-input"
-      type="text"
-      placeholder="e.g. YV97U1kk or https://modrinth.com/collection/YV97U1kk"
-      autocomplete="off"
-      spellcheck="false"
-    />
-  </div>
-
-  <div id="form-error" style="display:none; color:var(--error); font-size:0.88rem; margin-bottom:12px; padding:8px 12px; background:rgba(248,113,113,0.1); border-radius:6px; border:1px solid rgba(248,113,113,0.3);"></div>
-
-  <div class="row">
+  <div class="card">
     <div class="form-group">
-      <label for="mc-version">Minecraft Version</label>
-      <select id="mc-version" disabled>
-        <option value="">Loading versions…</option>
-      </select>
-      <button type="button" id="mc-version-retry" style="display:none; margin-top:6px; background:none; border:1px solid var(--border); border-radius:6px; color:var(--text-muted); font-size:0.82rem; padding:4px 10px; cursor:pointer;" onclick="loadMcVersions()">↺ Retry</button>
+      <label for="collection-input">Collection ID or URL</label>
+      <input id="collection-input" type="text" placeholder="e.g. YV97U1kk or https://modrinth.com/collection/YV97U1kk"
+        autocomplete="off" spellcheck="false" />
     </div>
-    <div class="form-group">
-      <label for="loader">Mod Loader</label>
-      <select id="loader">
-        <option value="fabric">Fabric</option>
-        <option value="forge">Forge</option>
-        <option value="quilt">Quilt</option>
-        <option value="neoforge">NeoForge</option>
-        <option value="liteloader">LiteLoader</option>
-        <option value="modloader">ModLoader</option>
-        <option value="paper">Paper</option>
-        <option value="bungeecord">BungeeCord</option>
-        <option value="folia">Folia</option>
-        <option value="purpur">Purpur</option>
-        <option value="spigot">Spigot</option>
-        <option value="velocity">Velocity</option>
-        <option value="waterfall">Waterfall</option>
-      </select>
+
+    <div id="form-error"
+      style="display:none; color:var(--error); font-size:0.88rem; margin-bottom:12px; padding:8px 12px; background:rgba(248,113,113,0.1); border-radius:6px; border:1px solid rgba(248,113,113,0.3);">
     </div>
-  </div>
 
-  <div class="form-group">
-    <label>Include in download</label>
-    <div class="checkbox-group">
-      <label class="checkbox-label">
-        <input type="checkbox" id="include-mods" checked> Mods, Plugins &amp; Datapacks
-      </label>
-      <label class="checkbox-label">
-        <input type="checkbox" id="include-resourcepacks" checked> Resource Packs
-      </label>
-      <label class="checkbox-label">
-        <input type="checkbox" id="include-shaders" checked> Shaders
-      </label>
-    </div>
-  </div>
-
-  <button id="start-btn" class="btn btn-primary" onclick="startDownload()">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-      <polyline points="7 10 12 15 17 10"/>
-      <line x1="12" y1="15" x2="12" y2="3"/>
-    </svg>
-    Download Collection
-  </button>
-
-  <div id="progress-section">
-    <div class="progress-header">
-      <h2 id="progress-title">Processing…</h2>
-      <div class="stats-bar">
-        <span class="stat"><span class="dot dot-success"></span><span id="stat-ok">0</span> downloaded</span>
-        <span class="stat"><span class="dot dot-skip"></span><span id="stat-skip">0</span> skipped</span>
-        <span class="stat"><span class="dot dot-error"></span><span id="stat-err">0</span> failed</span>
+    <div class="row">
+      <div class="form-group">
+        <label for="mc-version">Minecraft Version</label>
+        <select id="mc-version" disabled>
+          <option value="">Loading versions…</option>
+        </select>
+        <button type="button" id="mc-version-retry"
+          style="display:none; margin-top:6px; background:none; border:1px solid var(--border); border-radius:6px; color:var(--text-muted); font-size:0.82rem; padding:4px 10px; cursor:pointer;"
+          onclick="loadMcVersions()">↺ Retry</button>
+      </div>
+      <div class="form-group">
+        <label for="loader">Mod Loader</label>
+        <select id="loader">
+          <option value="fabric">Fabric</option>
+          <option value="forge">Forge</option>
+          <option value="quilt">Quilt</option>
+          <option value="neoforge">NeoForge</option>
+          <option value="liteloader">LiteLoader</option>
+          <option value="modloader">ModLoader</option>
+          <option value="paper">Paper</option>
+          <option value="bungeecord">BungeeCord</option>
+          <option value="folia">Folia</option>
+          <option value="purpur">Purpur</option>
+          <option value="spigot">Spigot</option>
+          <option value="velocity">Velocity</option>
+          <option value="waterfall">Waterfall</option>
+        </select>
       </div>
     </div>
-    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-    <div id="log"></div>
-    <div id="summary"></div>
-    <button id="dl-btn" class="btn btn-download" style="display:none" onclick="triggerZipDownload()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/>
-        <line x1="12" y1="15" x2="12" y2="3"/>
+
+    <div class="form-group">
+      <label>Include in download</label>
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="include-mods" checked> Mods, Plugins &amp; Datapacks
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="include-resourcepacks" checked> Resource Packs
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="include-shaders" checked> Shaders
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Release Preference</label>
+      <div class="checkbox-group">
+        <label class="checkbox-label"
+          title="When checked, prefers the latest stable release (falls back to Alpha/Beta if no stable version exists for the selected Minecraft version). When unchecked, always downloads the newest overall version.">
+          <input type="checkbox" id="prefer-stable" checked> Prefer stable releases over newest alpha/beta
+        </label>
+      </div>
+    </div>
+
+    <button id="start-btn" class="btn btn-primary" onclick="startDownload()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
       </svg>
-      Save mods.zip
+      Download Collection
     </button>
+
+    <div id="progress-section">
+      <div class="progress-header">
+        <h2 id="progress-title">Processing…</h2>
+        <div class="stats-bar">
+          <span class="stat"><span class="dot dot-success"></span><span id="stat-ok">0</span> downloaded</span>
+          <span class="stat"><span class="dot dot-skip"></span><span id="stat-skip">0</span> skipped</span>
+          <span class="stat"><span class="dot dot-error"></span><span id="stat-err">0</span> failed</span>
+        </div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div id="log"></div>
+      <div id="summary"></div>
+      <button id="dl-btn" class="btn btn-download" style="display:none" onclick="triggerZipDownload()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        Save mods.zip
+      </button>
+    </div>
   </div>
-</div>
 
-<footer>
-  <div>Made by <a href="https://github.com/DanyCDev">DanyCDev</a> ● <a href="https://github.com/DanyCDev/modrinth-collection-web-download">Please, give me a star on GitHub</a></div>
-  <div>Powered by the <a href="https://docs.modrinth.com/" target="_blank" rel="noopener">Modrinth API</a>.
-  All downloads happen directly in your browser.</div>
-</footer>
+  <footer>
+    <div>Made by <a href="https://github.com/DanyCDev">DanyCDev</a> ● <a
+        href="https://github.com/DanyCDev/modrinth-collection-web-download">Please, give me a star on GitHub</a></div>
+    <div>Powered by the <a href="https://docs.modrinth.com/" target="_blank" rel="noopener">Modrinth API</a>.
+      All downloads happen directly in your browser.</div>
+  </footer>
 
-<script>
-'use strict';
+  <script>
+    'use strict';
 
-const MODRINTH_API = 'https://api.modrinth.com';
+    const MODRINTH_API = 'https://api.modrinth.com';
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+    // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function extractCollectionId(input) {
-  const m = input.match(/(?:https?:\/\/)?(?:www\.)?modrinth\.com\/collection\/([^/?#\s]+)/);
-  return m ? m[1] : input.trim();
-}
+    function extractCollectionId(input) {
+      const m = input.match(/(?:https?:\/\/)?(?:www\.)?modrinth\.com\/collection\/([^/?#\s]+)/);
+      return m ? m[1] : input.trim();
+    }
 
-async function apiGet(path) {
-  const res = await fetch(MODRINTH_API + path, {
-    headers: { 'User-Agent': 'modrinth-web-collection/1.0 (github.com/DanyCDev/modrinth-web-collection)' }
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${path}`);
-  return res.json();
-}
+    async function apiGet(path) {
+      const res = await fetch(MODRINTH_API + path, {
+        headers: { 'User-Agent': 'modrinth-web-collection/1.0 (github.com/DanyCDev/modrinth-web-collection)' }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status} for ${path}`);
+      return res.json();
+    }
 
-async function fetchBinary(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
-  return res.arrayBuffer();
-}
+    async function fetchBinary(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
+      return res.arrayBuffer();
+    }
 
-// ── MC Versions ──────────────────────────────────────────────────────────────
+    // ── MC Versions ──────────────────────────────────────────────────────────────
 
-// https://launchermeta.mojang.com/mc/game/version_manifest.json returns an object
-// with a "versions" array. Each entry has an "id" string and a "type" string
-// ("release", "snapshot", "old_beta", "old_alpha"). Only release versions are shown.
-const MC_VERSION_RE = /^[0-9a-zA-Z][0-9a-zA-Z._\-+]{0,30}$/;
+    // https://launchermeta.mojang.com/mc/game/version_manifest.json returns an object
+    // with a "versions" array. Each entry has an "id" string and a "type" string
+    // ("release", "snapshot", "old_beta", "old_alpha"). Only release versions are shown.
+    const MC_VERSION_RE = /^[0-9a-zA-Z][0-9a-zA-Z._\-+]{0,30}$/;
 
-async function loadMcVersions() {
-  const sel = document.getElementById('mc-version');
-  const retryBtn = document.getElementById('mc-version-retry');
-  sel.innerHTML = '<option value="">Loading versions…</option>';
-  sel.disabled = true;
-  retryBtn.style.display = 'none';
-  try {
-    const res = await fetch('https://launchermeta.mojang.com/mc/game/version_manifest.json');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    const versions = (data.versions ?? [])
-      .filter(v => v.type === 'release' && MC_VERSION_RE.test(v.id));
-    if (!versions.length) throw new Error('Empty version list');
-    sel.innerHTML = '';
-    const placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = 'Select a version…';
-    sel.appendChild(placeholder);
-    versions.forEach(v => {
-      const opt = document.createElement('option');
-      opt.value = v.id;
-      opt.textContent = v.id;
-      sel.appendChild(opt);
-    });
-    sel.disabled = false;
-  } catch (e) {
-    sel.innerHTML = '<option value="">Failed to load versions</option>';
-    sel.disabled = true;
-    retryBtn.style.display = 'inline-block';
-    console.error('Could not load MC versions:', e);
-  }
-}
+    async function loadMcVersions() {
+      const sel = document.getElementById('mc-version');
+      const retryBtn = document.getElementById('mc-version-retry');
+      sel.innerHTML = '<option value="">Loading versions…</option>';
+      sel.disabled = true;
+      retryBtn.style.display = 'none';
+      try {
+        const res = await fetch('https://launchermeta.mojang.com/mc/game/version_manifest.json');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const versions = (data.versions ?? [])
+          .filter(v => v.type === 'release' && MC_VERSION_RE.test(v.id));
+        if (!versions.length) throw new Error('Empty version list');
+        sel.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Select a version…';
+        sel.appendChild(placeholder);
+        versions.forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v.id;
+          opt.textContent = v.id;
+          sel.appendChild(opt);
+        });
+        sel.disabled = false;
+      } catch (e) {
+        sel.innerHTML = '<option value="">Failed to load versions</option>';
+        sel.disabled = true;
+        retryBtn.style.display = 'inline-block';
+        console.error('Could not load MC versions:', e);
+      }
+    }
 
-// ── Logging / UI ─────────────────────────────────────────────────────────────
+    // ── Logging / UI ─────────────────────────────────────────────────────────────
 
-const logEl       = document.getElementById('log');
-const fillEl      = document.getElementById('progress-fill');
-const statOk      = document.getElementById('stat-ok');
-const statSkip    = document.getElementById('stat-skip');
-const statErr     = document.getElementById('stat-err');
-const titleEl     = document.getElementById('progress-title');
-const summaryEl   = document.getElementById('summary');
-const dlBtn       = document.getElementById('dl-btn');
-const startBtn    = document.getElementById('start-btn');
+    const logEl = document.getElementById('log');
+    const fillEl = document.getElementById('progress-fill');
+    const statOk = document.getElementById('stat-ok');
+    const statSkip = document.getElementById('stat-skip');
+    const statErr = document.getElementById('stat-err');
+    const titleEl = document.getElementById('progress-title');
+    const summaryEl = document.getElementById('summary');
+    const dlBtn = document.getElementById('dl-btn');
+    const startBtn = document.getElementById('start-btn');
 
-function log(msg, cls = '') {
-  const div = document.createElement('div');
-  div.className = 'log-line' + (cls ? ' ' + cls : '');
-  div.textContent = msg;
-  logEl.appendChild(div);
-  logEl.scrollTop = logEl.scrollHeight;
-}
+    function log(msg, cls = '') {
+      const div = document.createElement('div');
+      div.className = 'log-line' + (cls ? ' ' + cls : '');
+      div.textContent = msg;
+      logEl.appendChild(div);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
 
-const stats = { ok: 0, skip: 0, err: 0, total: 0, done: 0 };
+    const stats = { ok: 0, skip: 0, err: 0, total: 0, done: 0 };
 
-function updateStats() {
-  statOk.textContent   = stats.ok;
-  statSkip.textContent = stats.skip;
-  statErr.textContent  = stats.err;
-  if (stats.total > 0) {
-    fillEl.style.width = Math.round((stats.done / stats.total) * 100) + '%';
-  }
-}
+    function updateStats() {
+      statOk.textContent = stats.ok;
+      statSkip.textContent = stats.skip;
+      statErr.textContent = stats.err;
+      if (stats.total > 0) {
+        fillEl.style.width = Math.round((stats.done / stats.total) * 100) + '%';
+      }
+    }
 
-// ── Core logic ───────────────────────────────────────────────────────────────
+    // ── Core logic ───────────────────────────────────────────────────────────────
 
-let zip;
-let processedMods;   // Set<string> – prevents circular dependency loops
-let failedMods;      // Array<string>
+    let zip;
+    let processedMods;   // Set<string> – prevents circular dependency loops
+    let failedMods;      // Array<string>
 
-async function getCollection(collectionId) {
-  return apiGet(`/v3/collection/${collectionId}`);
-}
+    async function getCollection(collectionId) {
+      return apiGet(`/v3/collection/${collectionId}`);
+    }
 
-async function getModVersions(modId) {
-  return apiGet(`/v2/project/${modId}/version`);
-}
+    async function getModVersions(modId) {
+      return apiGet(`/v2/project/${modId}/version`);
+    }
 
-async function getModProject(modId) {
-  return apiGet(`/v2/project/${modId}`);
-}
+    async function getModProject(modId) {
+      return apiGet(`/v2/project/${modId}`);
+    }
 
-// Returns the best matching version.
-// For non-mod types (resourcepack, shader, datapack) we skip the loader check
-// because those project types use their own loader tags (e.g. "iris", "datapack").
-function getLatestVersion(versions, mcVersion, loader, ignoreLoader = false) {
-  return versions.find(v =>
-    v.game_versions.includes(mcVersion) &&
-    (ignoreLoader || v.loaders.map(l => l.toLowerCase()).includes(loader.toLowerCase()))
-  ) || null;
-}
+    // Returns the best matching version.
+    // When preferStable is true: prefers the latest release version, but falls back
+    // to the latest pre-release (beta/alpha) if no release version exists for that MC version.
+    // When preferStable is false: always returns the newest version overall.
+    // For non-mod types (resourcepack, shader, datapack) we skip the loader check
+    // because those project types use their own loader tags (e.g. "iris", "datapack").
+    function getLatestVersion(versions, mcVersion, loader, ignoreLoader = false, preferStable = true) {
+      const matching = versions.filter(v =>
+        v.game_versions.includes(mcVersion) &&
+        (ignoreLoader || v.loaders.map(l => l.toLowerCase()).includes(loader.toLowerCase()))
+      );
+      if (!matching.length) return null;
 
-// Map Modrinth project_type → { folder, checkboxId }
-const DEFAULT_TYPE_INFO = { folder: 'mods_plugins', checkboxId: 'include-mods' };
-const PROJECT_TYPE_MAP = {
-  mod:          { folder: 'mods_plugins',   checkboxId: 'include-mods' },
-  plugin:       { folder: 'mods_plugins',   checkboxId: 'include-mods' },
-  resourcepack: { folder: 'resource_packs', checkboxId: 'include-resourcepacks' },
-  datapack:     { folder: 'mods_plugins',   checkboxId: 'include-mods' },
-  shader:       { folder: 'shaders',        checkboxId: 'include-shaders' },
-};
+      if (preferStable) {
+        return matching.find(v => (v.version_type ? v.version_type === 'release' : true)) || matching[0];
+      }
+      return matching[0];
+    }
 
-// Types that don't need loader filtering (they carry their own loader tags)
-const LOADER_AGNOSTIC_TYPES = new Set(['resourcepack', 'datapack', 'shader']);
+    // Map Modrinth project_type → { folder, checkboxId }
+    const DEFAULT_TYPE_INFO = { folder: 'mods_plugins', checkboxId: 'include-mods' };
+    const PROJECT_TYPE_MAP = {
+      mod: { folder: 'mods_plugins', checkboxId: 'include-mods' },
+      plugin: { folder: 'mods_plugins', checkboxId: 'include-mods' },
+      resourcepack: { folder: 'resource_packs', checkboxId: 'include-resourcepacks' },
+      datapack: { folder: 'mods_plugins', checkboxId: 'include-mods' },
+      shader: { folder: 'shaders', checkboxId: 'include-shaders' },
+    };
 
-/**
- * Download one project (and its required dependencies) into the JSZip instance.
- * Returns 'ok' | 'skip' | 'error'
- */
-async function downloadMod(modId, mcVersion, loader, isDep = false, parentId = null) {
-  if (processedMods.has(modId)) return 'skip';
-  processedMods.add(modId);
+    // Types that don't need loader filtering (they carry their own loader tags)
+    const LOADER_AGNOSTIC_TYPES = new Set(['resourcepack', 'datapack', 'shader']);
 
-  const prefix = isDep ? '  [DEP] ' : '';
+    /**
+     * Download one project (and its required dependencies) into the JSZip instance.
+     * Returns 'ok' | 'skip' | 'error'
+     */
+    async function downloadMod(modId, mcVersion, loader, preferStable = true, isDep = false, parentId = null) {
+      if (processedMods.has(modId)) return 'skip';
+      processedMods.add(modId);
 
-  // Fetch project metadata (needed for type, display name, and modpack detection)
-  let project;
-  try {
-    project = await getModProject(modId);
-  } catch (e) {
-    log(`${prefix}ERROR: Could not fetch project info for ${modId}: ${e.message}`, 'log-error');
-    stats.err++;
-    failedMods.push(modId);
-    return 'error';
-  }
+      const prefix = isDep ? '  [DEP] ' : '';
 
-  const name    = project.title || project.slug || modId;
-  const display = name !== modId ? `${name} (${modId})` : modId;
-  const projectType = (project.project_type || 'mod').toLowerCase();
+      // Fetch project metadata (needed for type, display name, and modpack detection)
+      let project;
+      try {
+        project = await getModProject(modId);
+      } catch (e) {
+        log(`${prefix}ERROR: Could not fetch project info for ${modId}: ${e.message}`, 'log-error');
+        stats.err++;
+        failedMods.push(modId);
+        return 'error';
+      }
 
-  // Modpacks (.mrpack) cannot be downloaded — show as error
-  if (projectType === 'modpack') {
-    log(`${prefix}ERROR: ${display} is a modpack (.mrpack) — cannot download`, 'log-error');
-    stats.err++;
-    failedMods.push(display);
-    return 'error';
-  }
+      const name = project.title || project.slug || modId;
+      const display = name !== modId ? `${name} (${modId})` : modId;
+      const projectType = (project.project_type || 'mod').toLowerCase();
 
-  // Determine output folder; default to mods_plugins for unknown types
-  const typeInfo = PROJECT_TYPE_MAP[projectType] ?? DEFAULT_TYPE_INFO;
+      // Modpacks (.mrpack) cannot be downloaded — show as error
+      if (projectType === 'modpack') {
+        log(`${prefix}ERROR: ${display} is a modpack (.mrpack) — cannot download`, 'log-error');
+        stats.err++;
+        failedMods.push(display);
+        return 'error';
+      }
 
-  // Respect category checkboxes — skip if the user deselected this category
-  const checkboxEl = document.getElementById(typeInfo.checkboxId);
-  if (!checkboxEl) {
-    console.warn(`Checkbox element not found for id "${typeInfo.checkboxId}" (project type: ${projectType})`);
-  }
-  if (checkboxEl && !checkboxEl.checked) {
-    log(`${prefix}SKIP: ${display} (${projectType} — category disabled)`, 'log-skip');
-    stats.skip++;
-    return 'skip';
-  }
+      // Determine output folder; default to mods_plugins for unknown types
+      const typeInfo = PROJECT_TYPE_MAP[projectType] ?? DEFAULT_TYPE_INFO;
 
-  let versions;
-  try {
-    versions = await getModVersions(modId);
-  } catch (e) {
-    log(`${prefix}ERROR: Could not fetch versions for ${modId}: ${e.message}`, 'log-error');
-    stats.err++;
-    failedMods.push(display);
-    return 'error';
-  }
+      // Respect category checkboxes — skip if the user deselected this category
+      const checkboxEl = document.getElementById(typeInfo.checkboxId);
+      if (!checkboxEl) {
+        console.warn(`Checkbox element not found for id "${typeInfo.checkboxId}" (project type: ${projectType})`);
+      }
+      if (checkboxEl && !checkboxEl.checked) {
+        log(`${prefix}SKIP: ${display} (${projectType} — category disabled)`, 'log-skip');
+        stats.skip++;
+        return 'skip';
+      }
 
-  const ignoreLoader = LOADER_AGNOSTIC_TYPES.has(projectType);
-  const latest = getLatestVersion(versions, mcVersion, loader, ignoreLoader);
-  if (!latest) {
-    const parentNote = isDep && parentId ? ` [required by ${parentId}]` : '';
-    log(`${prefix}NOT FOUND: No ${mcVersion} + ${ignoreLoader ? 'any loader' : loader} version for ${display}${parentNote}`, 'log-error');
-    stats.err++;
-    failedMods.push(display);
-    return 'error';
-  }
+      let versions;
+      try {
+        versions = await getModVersions(modId);
+      } catch (e) {
+        log(`${prefix}ERROR: Could not fetch versions for ${modId}: ${e.message}`, 'log-error');
+        stats.err++;
+        failedMods.push(display);
+        return 'error';
+      }
 
-  // Process required dependencies first
-  const deps = (latest.dependencies || []).filter(d => d.dependency_type === 'required' && d.project_id);
-  for (const dep of deps) {
-    if (!processedMods.has(dep.project_id)) {
-      stats.total++;
+      const ignoreLoader = LOADER_AGNOSTIC_TYPES.has(projectType);
+      const latest = getLatestVersion(versions, mcVersion, loader, ignoreLoader, preferStable);
+      if (!latest) {
+        const parentNote = isDep && parentId ? ` [required by ${parentId}]` : '';
+        log(`${prefix}NOT FOUND: No ${mcVersion} + ${ignoreLoader ? 'any loader' : loader} version for ${display}${parentNote}`, 'log-error');
+        stats.err++;
+        failedMods.push(display);
+        return 'error';
+      }
+
+      // Process required dependencies first
+      const deps = (latest.dependencies || []).filter(d => d.dependency_type === 'required' && d.project_id);
+      for (const dep of deps) {
+        if (!processedMods.has(dep.project_id)) {
+          stats.total++;
+          updateStats();
+          await downloadMod(dep.project_id, mcVersion, loader, preferStable, true, modId);
+          stats.done++;
+          updateStats();
+        }
+      }
+
+      // Find primary file
+      const primaryFile = (latest.files || []).find(f => f.primary);
+      if (!primaryFile) {
+        log(`${prefix}ERROR: No primary file found for ${display}`, 'log-error');
+        stats.err++;
+        failedMods.push(display);
+        return 'error';
+      }
+
+      const filename = primaryFile.filename;
+
+      // Extra safety: refuse .mrpack files even if the project type wasn't 'modpack'
+      if (filename.toLowerCase().endsWith('.mrpack')) {
+        log(`${prefix}ERROR: ${display} produces a .mrpack file — cannot download`, 'log-error');
+        stats.err++;
+        failedMods.push(display);
+        return 'error';
+      }
+
+      // Embed modId into filename (same convention as the Python script)
+      const parts = filename.split('.');
+      parts.splice(parts.length - 1, 0, modId);
+      const savedName = `${typeInfo.folder}/${parts.join('.')}`;
+
+      // Skip if already in zip
+      if (zip.files[savedName]) {
+        if (isDep) {
+          log(`${prefix}SKIP: ${savedName} already in archive`, 'log-skip');
+        }
+        stats.skip++;
+        return 'skip';
+      }
+
+      try {
+        log(`${prefix}Downloading ${display} → ${savedName}…`, isDep ? 'log-dep' : 'log-info');
+        const data = await fetchBinary(primaryFile.url);
+        zip.file(savedName, data);
+        log(`${prefix}✓ ${display}`, 'log-ok');
+        stats.ok++;
+        return 'ok';
+      } catch (e) {
+        log(`${prefix}ERROR downloading ${display}: ${e.message}`, 'log-error');
+        stats.err++;
+        failedMods.push(display);
+        return 'error';
+      }
+    }
+
+    // ── Entry point ───────────────────────────────────────────────────────────────
+
+    let zipBlob = null;
+
+    async function startDownload() {
+      const collectionRaw = document.getElementById('collection-input').value.trim();
+      const mcVersion = document.getElementById('mc-version').value.trim();
+      const loader = document.getElementById('loader').value;
+      const preferStable = document.getElementById('prefer-stable')?.checked ?? true;
+      const formError = document.getElementById('form-error');
+
+      formError.style.display = 'none';
+
+      if (!collectionRaw) {
+        formError.textContent = 'Please enter a Collection ID or URL.';
+        formError.style.display = 'block';
+        document.getElementById('collection-input').focus();
+        return;
+      }
+      if (!mcVersion) {
+        formError.textContent = 'Please select a Minecraft version.';
+        formError.style.display = 'block';
+        document.getElementById('mc-version').focus();
+        return;
+      }
+
+      const collectionId = extractCollectionId(collectionRaw);
+
+      // Reset state
+      zip = new JSZip();
+      processedMods = new Set();
+      failedMods = [];
+      zipBlob = null;
+      Object.assign(stats, { ok: 0, skip: 0, err: 0, total: 0, done: 0 });
+      logEl.innerHTML = '';
+      summaryEl.style.display = 'none';
+      summaryEl.innerHTML = '';
+      dlBtn.style.display = 'none';
       updateStats();
-      await downloadMod(dep.project_id, mcVersion, loader, true, modId);
-      stats.done++;
-      updateStats();
-    }
-  }
 
-  // Find primary file
-  const primaryFile = (latest.files || []).find(f => f.primary);
-  if (!primaryFile) {
-    log(`${prefix}ERROR: No primary file found for ${display}`, 'log-error');
-    stats.err++;
-    failedMods.push(display);
-    return 'error';
-  }
+      document.getElementById('progress-section').style.display = 'block';
+      startBtn.disabled = true;
+      startBtn.innerHTML = '<span class="spinner"></span> Processing…';
+      titleEl.textContent = 'Fetching collection…';
 
-  const filename = primaryFile.filename;
+      try {
+        log(`Fetching collection ${collectionId}…`, 'log-head');
+        const collection = await getCollection(collectionId);
+        const collectionName = collection.name || collectionId;
+        log(`Collection: "${collectionName}" — ${collection.projects?.length ?? 0} project(s)`, 'log-head');
 
-  // Extra safety: refuse .mrpack files even if the project type wasn't 'modpack'
-  if (filename.toLowerCase().endsWith('.mrpack')) {
-    log(`${prefix}ERROR: ${display} produces a .mrpack file — cannot download`, 'log-error');
-    stats.err++;
-    failedMods.push(display);
-    return 'error';
-  }
+        const projectIds = collection.projects || [];
+        if (projectIds.length === 0) {
+          log('No projects found in this collection.', 'log-error');
+          return;
+        }
 
-  // Embed modId into filename (same convention as the Python script)
-  const parts     = filename.split('.');
-  parts.splice(parts.length - 1, 0, modId);
-  const savedName = `${typeInfo.folder}/${parts.join('.')}`;
+        stats.total = projectIds.length;
+        const channelDesc = preferStable ? ' (prefer stable)' : ' (newest overall)';
+        titleEl.textContent = `Downloading ${projectIds.length} mod(s) for MC ${mcVersion} + ${loader}${channelDesc}…`;
+        updateStats();
 
-  // Skip if already in zip
-  if (zip.files[savedName]) {
-    if (isDep) {
-      log(`${prefix}SKIP: ${savedName} already in archive`, 'log-skip');
-    }
-    stats.skip++;
-    return 'skip';
-  }
+        // Download mods sequentially to keep API request rate reasonable
+        for (const modId of projectIds) {
+          await downloadMod(modId, mcVersion, loader, preferStable, false, null);
+          stats.done++;
+          updateStats();
+        }
 
-  try {
-    log(`${prefix}Downloading ${display} → ${savedName}…`, isDep ? 'log-dep' : 'log-info');
-    const data = await fetchBinary(primaryFile.url);
-    zip.file(savedName, data);
-    log(`${prefix}✓ ${display}`, 'log-ok');
-    stats.ok++;
-    return 'ok';
-  } catch (e) {
-    log(`${prefix}ERROR downloading ${display}: ${e.message}`, 'log-error');
-    stats.err++;
-    failedMods.push(display);
-    return 'error';
-  }
-}
+        // Build summary
+        titleEl.textContent = 'Done!';
+        const downloaded = stats.ok;
+        const skipped = stats.skip;
+        const failed = stats.err;
 
-// ── Entry point ───────────────────────────────────────────────────────────────
-
-let zipBlob = null;
-
-async function startDownload() {
-  const collectionRaw = document.getElementById('collection-input').value.trim();
-  const mcVersion     = document.getElementById('mc-version').value.trim();
-  const loader        = document.getElementById('loader').value;
-  const formError     = document.getElementById('form-error');
-
-  formError.style.display = 'none';
-
-  if (!collectionRaw) {
-    formError.textContent = 'Please enter a Collection ID or URL.';
-    formError.style.display = 'block';
-    document.getElementById('collection-input').focus();
-    return;
-  }
-  if (!mcVersion) {
-    formError.textContent = 'Please select a Minecraft version.';
-    formError.style.display = 'block';
-    document.getElementById('mc-version').focus();
-    return;
-  }
-
-  const collectionId = extractCollectionId(collectionRaw);
-
-  // Reset state
-  zip           = new JSZip();
-  processedMods = new Set();
-  failedMods    = [];
-  zipBlob       = null;
-  Object.assign(stats, { ok: 0, skip: 0, err: 0, total: 0, done: 0 });
-  logEl.innerHTML    = '';
-  summaryEl.style.display = 'none';
-  summaryEl.innerHTML     = '';
-  dlBtn.style.display     = 'none';
-  updateStats();
-
-  document.getElementById('progress-section').style.display = 'block';
-  startBtn.disabled = true;
-  startBtn.innerHTML = '<span class="spinner"></span> Processing…';
-  titleEl.textContent = 'Fetching collection…';
-
-  try {
-    log(`Fetching collection ${collectionId}…`, 'log-head');
-    const collection = await getCollection(collectionId);
-    const collectionName = collection.name || collectionId;
-    log(`Collection: "${collectionName}" — ${collection.projects?.length ?? 0} project(s)`, 'log-head');
-
-    const projectIds = collection.projects || [];
-    if (projectIds.length === 0) {
-      log('No projects found in this collection.', 'log-error');
-      return;
-    }
-
-    stats.total = projectIds.length;
-    titleEl.textContent = `Downloading ${projectIds.length} mod(s) for MC ${mcVersion} + ${loader}…`;
-    updateStats();
-
-    // Download mods sequentially to keep API request rate reasonable
-    for (const modId of projectIds) {
-      await downloadMod(modId, mcVersion, loader, false, null);
-      stats.done++;
-      updateStats();
-    }
-
-    // Build summary
-    titleEl.textContent = 'Done!';
-    const downloaded = stats.ok;
-    const skipped    = stats.skip;
-    const failed     = stats.err;
-
-    summaryEl.style.display = 'block';
-    let summaryHtml = `<h3>Summary</h3><ul>
+        summaryEl.style.display = 'block';
+        let summaryHtml = `<h3>Summary</h3><ul>
       <li><strong>${downloaded}</strong> mod(s) downloaded</li>
       <li><strong>${skipped}</strong> mod(s) skipped (already present or duplicates)</li>
       <li><strong>${failed}</strong> mod(s) failed</li>`;
-    if (failedMods.length > 0) {
-      summaryHtml += `<li class="failed-list">Failed: ${failedMods.map(m => `<em>${m}</em>`).join(', ')}</li>`;
+        if (failedMods.length > 0) {
+          summaryHtml += `<li class="failed-list">Failed: ${failedMods.map(m => `<em>${m}</em>`).join(', ')}</li>`;
+        }
+        summaryHtml += '</ul>';
+        summaryEl.innerHTML = summaryHtml;
+
+        if (downloaded > 0) {
+          log('Compressing archive…', 'log-info');
+          dlBtn.style.display = 'flex';
+          dlBtn.disabled = true;
+          dlBtn.innerHTML = '<span class="spinner"></span> Preparing mods.zip…';
+          zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+          log(`Archive ready (${(zipBlob.size / 1024 / 1024).toFixed(2)} MB).`, 'log-ok');
+          dlBtn.disabled = false;
+          dlBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Save mods.zip`;
+        } else {
+          log('No files were downloaded — nothing to save.', 'log-info');
+        }
+
+      } catch (e) {
+        log(`Fatal error: ${e.message}`, 'log-error');
+        titleEl.textContent = 'Error';
+      } finally {
+        startBtn.disabled = false;
+        startBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download Collection`;
+      }
     }
-    summaryHtml += '</ul>';
-    summaryEl.innerHTML = summaryHtml;
 
-    if (downloaded > 0) {
-      log('Compressing archive…', 'log-info');
-      dlBtn.style.display = 'flex';
-      dlBtn.disabled = true;
-      dlBtn.innerHTML = '<span class="spinner"></span> Preparing mods.zip…';
-      zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
-      log(`Archive ready (${(zipBlob.size / 1024 / 1024).toFixed(2)} MB).`, 'log-ok');
-      dlBtn.disabled = false;
-      dlBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Save mods.zip`;
-    } else {
-      log('No files were downloaded — nothing to save.', 'log-info');
+    const BLOB_URL_REVOKE_DELAY_MS = 60_000;
+
+    function triggerZipDownload() {
+      if (!zipBlob) return;
+      const collectionId = extractCollectionId(document.getElementById('collection-input').value.trim()) || 'mods';
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${collectionId}-mods.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), BLOB_URL_REVOKE_DELAY_MS);
     }
 
-  } catch (e) {
-    log(`Fatal error: ${e.message}`, 'log-error');
-    titleEl.textContent = 'Error';
-  } finally {
-    startBtn.disabled = false;
-    startBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download Collection`;
-  }
-}
-
-const BLOB_URL_REVOKE_DELAY_MS = 60_000;
-
-function triggerZipDownload() {
-  if (!zipBlob) return;
-  const collectionId = extractCollectionId(document.getElementById('collection-input').value.trim()) || 'mods';
-  const url  = URL.createObjectURL(zipBlob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `${collectionId}-mods.zip`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), BLOB_URL_REVOKE_DELAY_MS);
-}
-
-loadMcVersions();
-</script>
+    loadMcVersions();
+  </script>
 </body>
+
 </html>
