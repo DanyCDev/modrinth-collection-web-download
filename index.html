@@ -120,6 +120,34 @@
       color: #4a5268;
     }
 
+    .input-with-btn {
+      display: flex;
+      gap: 8px;
+    }
+
+    .open-link-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 42px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .open-link-btn:hover {
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+
+    .open-link-btn[aria-disabled="true"] {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
     select option {
       background: var(--surface-2);
     }
@@ -393,8 +421,19 @@
   <div class="card">
     <div class="form-group">
       <label for="collection-input">Collection ID or URL</label>
-      <input id="collection-input" type="text" placeholder="e.g. YV97U1kk or https://modrinth.com/collection/YV97U1kk"
-        autocomplete="off" spellcheck="false" />
+      <div class="input-with-btn">
+        <input id="collection-input" type="text" placeholder="e.g. YV97U1kk or https://modrinth.com/collection/YV97U1kk"
+          autocomplete="off" spellcheck="false" />
+        <a id="open-collection-btn" class="open-link-btn" target="_blank" rel="noopener" aria-disabled="true"
+          title="Open collection on Modrinth" aria-label="Open collection on Modrinth">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+        </a>
+      </div>
     </div>
 
     <div id="form-error"
@@ -993,7 +1032,24 @@
     ['collection-input', 'mc-version', 'loader', 'prefer-stable', ...Object.values(TYPE_CODES)]
       .forEach(id => document.getElementById(id).addEventListener('change', syncUrl));
 
+    // ── Open collection on Modrinth ──────────────────────────────────────────────
+
+    function updateOpenCollectionBtn() {
+      const btn = document.getElementById('open-collection-btn');
+      const id = extractCollectionId(document.getElementById('collection-input').value);
+      if (id) {
+        btn.href = `https://modrinth.com/collection/${encodeURIComponent(id)}`;
+        btn.setAttribute('aria-disabled', 'false');
+      } else {
+        btn.removeAttribute('href');
+        btn.setAttribute('aria-disabled', 'true');
+      }
+    }
+
+    document.getElementById('collection-input').addEventListener('input', updateOpenCollectionBtn);
+
     applyUrlParams();
+    updateOpenCollectionBtn();
     loadMcVersions();
   </script>
 </body>
