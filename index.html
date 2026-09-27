@@ -173,6 +173,20 @@
       background: #1458d6;
     }
 
+    .btn-share {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      padding: 8px 16px;
+      margin-top: 10px;
+    }
+
+    .btn-share:hover:not(:disabled) {
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+
     /* Progress section */
     #progress-section {
       margin-top: 28px;
@@ -452,6 +466,8 @@
       Download Collection
     </button>
 
+    <button id="share-btn" type="button" class="btn btn-share" onclick="copyShareUrl()">Copy share link</button>
+
     <div id="progress-section">
       <div class="progress-header">
         <h2 id="progress-title">Processing…</h2>
@@ -542,6 +558,17 @@
           opt.textContent = v.id;
           sel.appendChild(opt);
         });
+        // Preselect the version from a share link (may be a snapshot not in the release list)
+        const wanted = getUrlParam('v');
+        if (wanted && MC_VERSION_RE.test(wanted)) {
+          if (![...sel.options].some(o => o.value === wanted)) {
+            const opt = document.createElement('option');
+            opt.value = wanted;
+            opt.textContent = wanted;
+            sel.appendChild(opt);
+          }
+          sel.value = wanted;
+        }
         sel.disabled = false;
       } catch (e) {
         sel.innerHTML = '<option value="">Failed to load versions</option>';
@@ -882,6 +909,91 @@
       setTimeout(() => URL.revokeObjectURL(url), BLOB_URL_REVOKE_DELAY_MS);
     }
 
+    // ── Share links ──────────────────────────────────────────────────────────────
+
+    // Short URL format, kept small enough to fit in a server MOTD:
+    //   ?c=<collection>&v=<mc version>&l=<loader code>[&s=0][&t=<types>]
+    // s=0 → newest overall instead of prefer stable (omitted when default).
+    // t   → included categories as letters m/r/s (omitted when all are included).
+    // Loader codes are fixed so old links keep working; full loader names are accepted too.
+    const LOADER_CODES = {
+      fabric: 'f', forge: 'fg', quilt: 'q', neoforge: 'n', liteloader: 'll', modloader: 'ml',
+      paper: 'p', bungeecord: 'b', folia: 'fo', purpur: 'pu', spigot: 's', velocity: 'v', waterfall: 'w',
+    };
+    const CODE_LOADERS = Object.fromEntries(Object.entries(LOADER_CODES).map(([name, code]) => [code, name]));
+    const TYPE_CODES = { m: 'include-mods', r: 'include-resourcepacks', s: 'include-shaders' };
+
+    function getUrlParam(name) {
+      return new URLSearchParams(location.search).get(name);
+    }
+
+    function applyUrlParams() {
+      const c = getUrlParam('c');
+      if (c) document.getElementById('collection-input').value = c;
+
+      const l = (getUrlParam('l') || '').toLowerCase();
+      const loader = CODE_LOADERS[l] || l;
+      const loaderSel = document.getElementById('loader');
+      if ([...loaderSel.options].some(o => o.value === loader)) loaderSel.value = loader;
+
+      if (getUrlParam('s') === '0') document.getElementById('prefer-stable').checked = false;
+
+      const t = getUrlParam('t');
+      if (t !== null) {
+        for (const [code, id] of Object.entries(TYPE_CODES)) {
+          document.getElementById(id).checked = t.includes(code);
+        }
+      }
+      // 'v' is applied by loadMcVersions() once the version list is available
+    }
+
+    function buildShareUrl() {
+      const p = new URLSearchParams();
+      const c = extractCollectionId(document.getElementById('collection-input').value.trim());
+      if (c) p.set('c', c);
+
+      // While versions are still loading, keep whatever version the current URL has
+      const versionSel = document.getElementById('mc-version');
+      const v = versionSel.disabled ? getUrlParam('v') : versionSel.value;
+      if (v) p.set('v', v);
+
+      const loader = document.getElementById('loader').value;
+      p.set('l', LOADER_CODES[loader] || loader);
+
+      if (!document.getElementById('prefer-stable').checked) p.set('s', '0');
+
+      const types = Object.entries(TYPE_CODES)
+        .filter(([, id]) => document.getElementById(id).checked)
+        .map(([code]) => code)
+        .join('');
+      if (types.length !== Object.keys(TYPE_CODES).length) p.set('t', types);
+
+      const q = p.toString();
+      return location.href.split(/[?#]/)[0] + (q ? '?' + q : '');
+    }
+
+    // Keep the address bar in sync with the form so it can be copied directly
+    function syncUrl() {
+      history.replaceState(null, '', buildShareUrl());
+    }
+
+    async function copyShareUrl() {
+      const btn = document.getElementById('share-btn');
+      const url = buildShareUrl();
+      syncUrl();
+      try {
+        await navigator.clipboard.writeText(url);
+        btn.textContent = 'Link copied!';
+      } catch {
+        prompt('Copy this link:', url);
+      }
+      setTimeout(() => { btn.textContent = 'Copy share link'; }, 2000);
+    }
+
+    ['collection-input', 'mc-version', 'loader', 'prefer-stable', ...Object.values(TYPE_CODES)]
+      .forEach(id => document.getElementById(id).addEventListener('change', syncUrl));
+
+    applyUrlParams();
     loadMcVersions();
   </script>
 </body>
