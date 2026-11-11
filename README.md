@@ -44,7 +44,7 @@ https://md.dkg.sk/?c=YV97U1kk&v=1.21.1&l=n&fl=f
 | `s` | `s=0` = newest overall | Omit for "prefer stable" (default) |
 | `t` | Included categories | Combination of `m` (mods/plugins/datapacks), `r` (resource packs), `s` (shaders). Omit to include all |
 
-Click **Copy share link** (or the copy icon next to the collection input) to copy the share link to clipboard. The address bar stays clean on `/` while you browse and configure options.
+Expand **Advanced options** and click **Copy share link** to copy the share link to clipboard. The address bar stays clean on `/` while you browse and configure options.
 
 ---
 
