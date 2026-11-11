@@ -3,7 +3,9 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Modrinth Collection Downloader</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
     integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg=="
@@ -136,8 +138,8 @@
       }
     }
 
-    /* Advanced options collapsible */
-    .advanced-details {
+    /* Advanced options container & toggle */
+    .advanced-container {
       margin-top: 18px;
       margin-bottom: 20px;
       border: 1px solid var(--border);
@@ -147,43 +149,59 @@
       transition: border-color 0.2s;
     }
 
-    .advanced-details[open] {
+    .advanced-container.open {
       border-color: rgba(27, 217, 106, 0.4);
     }
 
-    .advanced-summary {
+    .advanced-toggle-btn {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      background: none;
+      border: none;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 11px 16px;
+      padding: 12px 16px;
       cursor: pointer;
       user-select: none;
       font-size: 0.88rem;
       font-weight: 600;
       color: var(--text-muted);
-      list-style: none;
+      text-align: left;
+      font-family: inherit;
       transition: color 0.15s, background 0.15s;
     }
 
-    .advanced-summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .advanced-summary:hover {
+    .advanced-toggle-btn:hover {
       color: var(--text);
       background: rgba(255, 255, 255, 0.03);
     }
 
-    .advanced-summary .chevron {
-      transition: transform 0.2s ease;
-      color: var(--text-muted);
+    .advanced-toggle-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .advanced-details[open] .advanced-summary .chevron {
+    .advanced-toggle-hint {
+      font-weight: 400;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-left: 2px;
+    }
+
+    .advanced-toggle-btn .chevron {
+      transition: transform 0.2s ease;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .advanced-container.open .advanced-toggle-btn .chevron {
       transform: rotate(180deg);
     }
 
-    .advanced-content {
+    .advanced-panel {
       padding: 16px;
       border-top: 1px solid var(--border);
       display: flex;
@@ -192,7 +210,7 @@
       background: rgba(15, 17, 23, 0.25);
     }
 
-    .advanced-content .form-group {
+    .advanced-panel .form-group {
       margin-bottom: 0;
     }
 
@@ -218,6 +236,8 @@
     }
 
     .btn-share {
+      -webkit-appearance: none;
+      appearance: none;
       background: var(--surface-2);
       border: 1px solid var(--border);
       color: var(--text);
@@ -229,6 +249,7 @@
       align-items: center;
       gap: 8px;
       font-weight: 500;
+      font-family: inherit;
       transition: color 0.15s, border-color 0.15s, background 0.15s;
     }
 
@@ -240,6 +261,10 @@
     .btn-share.copied {
       border-color: var(--accent);
       color: var(--accent);
+    }
+
+    .btn-share svg {
+      flex-shrink: 0;
     }
 
     .share-hint {
@@ -562,14 +587,22 @@
       </div>
     </div>
 
-    <details id="advanced-options" class="advanced-details">
-      <summary class="advanced-summary">
-        <span>⚙ Advanced options <span style="font-weight:400; font-size:0.82rem; color:var(--text-muted); margin-left:6px;">(Fallback loader, Share link)</span></span>
-        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <div class="advanced-container">
+      <button type="button" id="advanced-toggle-btn" class="advanced-toggle-btn" onclick="toggleAdvanced()" aria-expanded="false">
+        <span class="advanced-toggle-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          Advanced options
+          <span class="advanced-toggle-hint">(Fallback loader, Share link)</span>
+        </span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
-      </summary>
-      <div class="advanced-content">
+      </button>
+
+      <div id="advanced-panel" class="advanced-panel" style="display:none;">
         <div class="form-group">
           <label for="fallback-loader">Fallback Mod Loader <span class="label-muted">(optional)</span></label>
           <select id="fallback-loader">
@@ -595,11 +628,11 @@
           <label>Share Configuration</label>
           <div class="share-row">
             <button id="share-btn" type="button" class="btn-share" onclick="copyShareUrl()">
-              <svg class="icon-copy" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <svg class="icon-copy" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
               </svg>
-              <svg class="icon-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:none; color:var(--accent);">
+              <svg class="icon-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:none; color:var(--accent); flex-shrink:0;">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
               <span id="share-btn-text">Copy share link</span>
@@ -608,7 +641,7 @@
           </div>
         </div>
       </div>
-    </details>
+    </div>
 
     <button id="start-btn" class="btn btn-primary" onclick="startDownload()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -1120,6 +1153,20 @@
       return new URLSearchParams(window.location.search).get(name);
     }
 
+    function toggleAdvanced(forceOpen) {
+      const container = document.querySelector('.advanced-container');
+      const panel = document.getElementById('advanced-panel');
+      const btn = document.getElementById('advanced-toggle-btn');
+      if (!container || !panel || !btn) return;
+
+      const isCurrentlyOpen = panel.style.display !== 'none';
+      const willOpen = forceOpen !== undefined ? forceOpen : !isCurrentlyOpen;
+
+      panel.style.display = willOpen ? 'flex' : 'none';
+      container.classList.toggle('open', willOpen);
+      btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    }
+
     function applyUrlParams() {
       const c = getUrlParam('c');
       if (c) {
@@ -1139,8 +1186,7 @@
         const fbSel = document.getElementById('fallback-loader');
         if ([...fbSel.options].some(o => o.value.toLowerCase() === fl.toLowerCase())) {
           fbSel.value = fl.toLowerCase();
-          const adv = document.getElementById('advanced-options');
-          if (adv) adv.open = true;
+          toggleAdvanced(true);
         }
       }
 
