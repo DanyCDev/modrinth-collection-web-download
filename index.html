@@ -130,6 +130,64 @@
       gap: 16px;
     }
 
+    @media (max-width: 520px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .input-with-btn {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 44px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s, transform 0.1s;
+    }
+
+    .btn-icon:hover {
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+
+    .btn-icon:active {
+      transform: scale(0.95);
+    }
+
+    .btn-icon.copied {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-share {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      padding: 10px 16px;
+      margin-top: 10px;
+    }
+
+    .btn-share:hover:not(:disabled) {
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+
+    .btn-share.copied {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
     .btn {
       display: inline-flex;
       align-items: center;
@@ -379,27 +437,58 @@
   <div class="card">
     <div class="form-group">
       <label for="collection-input">Collection ID or URL</label>
-      <input id="collection-input" type="text" placeholder="e.g. YV97U1kk or https://modrinth.com/collection/YV97U1kk"
-        autocomplete="off" spellcheck="false" />
+      <div class="input-with-btn">
+        <input id="collection-input" type="text" placeholder="e.g. YV97U1kk or https://modrinth.com/collection/YV97U1kk"
+          autocomplete="off" spellcheck="false" />
+        <button id="copy-share-btn" type="button" class="btn-icon" title="Copy share link" aria-label="Copy share link" onclick="copyShareUrl()">
+          <svg class="icon-copy" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <svg class="icon-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:none; color:var(--accent);">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <div id="form-error"
       style="display:none; color:var(--error); font-size:0.88rem; margin-bottom:12px; padding:8px 12px; background:rgba(248,113,113,0.1); border-radius:6px; border:1px solid rgba(248,113,113,0.3);">
     </div>
 
+    <div class="form-group">
+      <label for="mc-version">Minecraft Version</label>
+      <select id="mc-version" disabled>
+        <option value="">Loading versions…</option>
+      </select>
+      <button type="button" id="mc-version-retry"
+        style="display:none; margin-top:6px; background:none; border:1px solid var(--border); border-radius:6px; color:var(--text-muted); font-size:0.82rem; padding:4px 10px; cursor:pointer;"
+        onclick="loadMcVersions()">↺ Retry</button>
+    </div>
+
     <div class="row">
       <div class="form-group">
-        <label for="mc-version">Minecraft Version</label>
-        <select id="mc-version" disabled>
-          <option value="">Loading versions…</option>
+        <label for="loader">Primary Mod Loader</label>
+        <select id="loader">
+          <option value="fabric">Fabric</option>
+          <option value="forge">Forge</option>
+          <option value="quilt">Quilt</option>
+          <option value="neoforge">NeoForge</option>
+          <option value="liteloader">LiteLoader</option>
+          <option value="modloader">ModLoader</option>
+          <option value="paper">Paper</option>
+          <option value="bungeecord">BungeeCord</option>
+          <option value="folia">Folia</option>
+          <option value="purpur">Purpur</option>
+          <option value="spigot">Spigot</option>
+          <option value="velocity">Velocity</option>
+          <option value="waterfall">Waterfall</option>
         </select>
-        <button type="button" id="mc-version-retry"
-          style="display:none; margin-top:6px; background:none; border:1px solid var(--border); border-radius:6px; color:var(--text-muted); font-size:0.82rem; padding:4px 10px; cursor:pointer;"
-          onclick="loadMcVersions()">↺ Retry</button>
       </div>
       <div class="form-group">
-        <label for="loader">Mod Loader</label>
-        <select id="loader">
+        <label for="fallback-loader">Fallback Loader <span style="font-weight:normal; text-transform:none; opacity:0.7;">(optional)</span></label>
+        <select id="fallback-loader">
+          <option value="">None</option>
           <option value="fabric">Fabric</option>
           <option value="forge">Forge</option>
           <option value="quilt">Quilt</option>
@@ -450,6 +539,14 @@
         <line x1="12" y1="15" x2="12" y2="3" />
       </svg>
       Download Collection
+    </button>
+
+    <button id="share-btn" type="button" class="btn btn-share" onclick="copyShareUrl()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+      <span id="share-btn-text">Copy share link</span>
     </button>
 
     <div id="progress-section">
@@ -543,6 +640,18 @@
           sel.appendChild(opt);
         });
         sel.disabled = false;
+
+        // Preselect the version from a share link (may be a snapshot or custom version)
+        const wanted = getUrlParam('v');
+        if (wanted && MC_VERSION_RE.test(wanted)) {
+          if (![...sel.options].some(o => o.value === wanted)) {
+            const opt = document.createElement('option');
+            opt.value = wanted;
+            opt.textContent = wanted;
+            sel.appendChild(opt);
+          }
+          sel.value = wanted;
+        }
       } catch (e) {
         sel.innerHTML = '<option value="">Failed to load versions</option>';
         sel.disabled = true;
@@ -607,6 +716,7 @@
     // For non-mod types (resourcepack, shader, datapack) we skip the loader check
     // because those project types use their own loader tags (e.g. "iris", "datapack").
     function getLatestVersion(versions, mcVersion, loader, ignoreLoader = false, preferStable = true) {
+      if (!ignoreLoader && !loader) return null;
       const matching = versions.filter(v =>
         v.game_versions.includes(mcVersion) &&
         (ignoreLoader || v.loaders.map(l => l.toLowerCase()).includes(loader.toLowerCase()))
@@ -636,10 +746,11 @@
      * Download one project (and its required dependencies) into the JSZip instance.
      * Returns 'ok' | 'skip' | 'error'
      */
-    async function downloadMod(modId, mcVersion, loader, preferStable = true, isDep = false, parentId = null) {
+    async function downloadMod(modId, mcVersion, loaders, preferStable = true, isDep = false, parentId = null) {
       if (processedMods.has(modId)) return 'skip';
       processedMods.add(modId);
 
+      const loaderList = (Array.isArray(loaders) ? loaders : [loaders]).filter(Boolean);
       const prefix = isDep ? '  [DEP] ' : '';
 
       // Fetch project metadata (needed for type, display name, and modpack detection)
@@ -690,22 +801,39 @@
       }
 
       const ignoreLoader = LOADER_AGNOSTIC_TYPES.has(projectType);
-      const latest = getLatestVersion(versions, mcVersion, loader, ignoreLoader, preferStable);
+      let latest = null;
+      let matchedLoader = null;
+
+      for (const curLoader of (ignoreLoader ? [null] : loaderList)) {
+        latest = getLatestVersion(versions, mcVersion, curLoader, ignoreLoader, preferStable);
+        if (latest) {
+          matchedLoader = curLoader;
+          break;
+        }
+        if (ignoreLoader) break;
+      }
+
       if (!latest) {
         const parentNote = isDep && parentId ? ` [required by ${parentId}]` : '';
-        log(`${prefix}NOT FOUND: No ${mcVersion} + ${ignoreLoader ? 'any loader' : loader} version for ${display}${parentNote}`, 'log-error');
+        const loaderLabel = ignoreLoader ? 'any loader' : loaderList.join(' / ');
+        log(`${prefix}NOT FOUND: No ${mcVersion} + ${loaderLabel} version for ${display}${parentNote}`, 'log-error');
         stats.err++;
         failedMods.push(display);
         return 'error';
       }
 
+      if (!ignoreLoader && matchedLoader && loaderList.length > 1 && matchedLoader.toLowerCase() !== loaderList[0].toLowerCase()) {
+        log(`${prefix}Fallback: using ${matchedLoader} version for ${display}`, 'log-warn');
+      }
+
       // Process required dependencies first
       const deps = (latest.dependencies || []).filter(d => d.dependency_type === 'required' && d.project_id);
+      const depLoaders = matchedLoader ? [matchedLoader, ...loaderList.filter(l => l.toLowerCase() !== matchedLoader.toLowerCase())] : loaderList;
       for (const dep of deps) {
         if (!processedMods.has(dep.project_id)) {
           stats.total++;
           updateStats();
-          await downloadMod(dep.project_id, mcVersion, loader, preferStable, true, modId);
+          await downloadMod(dep.project_id, mcVersion, depLoaders, preferStable, true, modId);
           stats.done++;
           updateStats();
         }
@@ -767,6 +895,8 @@
       const collectionRaw = document.getElementById('collection-input').value.trim();
       const mcVersion = document.getElementById('mc-version').value.trim();
       const loader = document.getElementById('loader').value;
+      const fallbackLoader = document.getElementById('fallback-loader')?.value || '';
+      const loaders = [loader, fallbackLoader].filter((l, i, arr) => l && arr.indexOf(l) === i);
       const preferStable = document.getElementById('prefer-stable')?.checked ?? true;
       const formError = document.getElementById('form-error');
 
@@ -818,12 +948,13 @@
 
         stats.total = projectIds.length;
         const channelDesc = preferStable ? ' (prefer stable)' : ' (newest overall)';
-        titleEl.textContent = `Downloading ${projectIds.length} mod(s) for MC ${mcVersion} + ${loader}${channelDesc}…`;
+        const loaderDesc = loaders.length > 1 ? `${loaders[0]} (fallback: ${loaders[1]})` : loaders[0];
+        titleEl.textContent = `Downloading ${projectIds.length} mod(s) for MC ${mcVersion} + ${loaderDesc}${channelDesc}…`;
         updateStats();
 
         // Download mods sequentially to keep API request rate reasonable
         for (const modId of projectIds) {
-          await downloadMod(modId, mcVersion, loader, preferStable, false, null);
+          await downloadMod(modId, mcVersion, loaders, preferStable, false, null);
           stats.done++;
           updateStats();
         }
@@ -882,6 +1013,165 @@
       setTimeout(() => URL.revokeObjectURL(url), BLOB_URL_REVOKE_DELAY_MS);
     }
 
+    // ── Share links ──────────────────────────────────────────────────────────────
+
+    // Short URL format:
+    //   ?c=<collection>&v=<mc version>&l=<loader code>[&fl=<fallback loader code>][&s=0][&t=<types>]
+    // fl  → fallback mod loader code (omitted when empty/none).
+    // s=0 → newest overall instead of prefer stable (omitted when default).
+    // t   → included categories as letters m/r/s (omitted when all are included).
+    // Loader codes are short fixed aliases; full loader names are accepted too.
+    const LOADER_CODES = {
+      fabric: 'f',
+      forge: 'fg',
+      quilt: 'q',
+      neoforge: 'n',
+      liteloader: 'll',
+      modloader: 'ml',
+      paper: 'p',
+      bungeecord: 'b',
+      folia: 'fo',
+      purpur: 'pu',
+      spigot: 's',
+      velocity: 'v',
+      waterfall: 'w',
+    };
+    const CODE_LOADERS = Object.fromEntries(Object.entries(LOADER_CODES).map(([name, code]) => [code, name]));
+    const TYPE_CODES = { m: 'include-mods', r: 'include-resourcepacks', s: 'include-shaders' };
+
+    function decodeLoader(val) {
+      if (!val) return '';
+      const lower = val.toLowerCase();
+      return CODE_LOADERS[lower] || lower;
+    }
+
+    function getUrlParam(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
+
+    function applyUrlParams() {
+      const c = getUrlParam('c');
+      if (c) {
+        document.getElementById('collection-input').value = c;
+      }
+
+      const l = decodeLoader(getUrlParam('l'));
+      if (l) {
+        const loaderSel = document.getElementById('loader');
+        if ([...loaderSel.options].some(o => o.value.toLowerCase() === l.toLowerCase())) {
+          loaderSel.value = l.toLowerCase();
+        }
+      }
+
+      const fl = decodeLoader(getUrlParam('fl'));
+      if (fl) {
+        const fbSel = document.getElementById('fallback-loader');
+        if ([...fbSel.options].some(o => o.value.toLowerCase() === fl.toLowerCase())) {
+          fbSel.value = fl.toLowerCase();
+        }
+      }
+
+      if (getUrlParam('s') === '0') {
+        const stableEl = document.getElementById('prefer-stable');
+        if (stableEl) stableEl.checked = false;
+      }
+
+      const t = getUrlParam('t');
+      if (t !== null) {
+        for (const [code, id] of Object.entries(TYPE_CODES)) {
+          const el = document.getElementById(id);
+          if (el) el.checked = t.includes(code);
+        }
+      }
+      // 'v' is applied in loadMcVersions() once versions are loaded from API
+    }
+
+    function buildShareUrl() {
+      const p = new URLSearchParams();
+      const rawCollection = document.getElementById('collection-input').value.trim();
+      const c = extractCollectionId(rawCollection);
+      if (c) p.set('c', c);
+
+      // While versions are still loading, keep whatever version the current URL has
+      const versionSel = document.getElementById('mc-version');
+      const v = versionSel.disabled ? getUrlParam('v') : versionSel.value;
+      if (v) p.set('v', v);
+
+      const loader = document.getElementById('loader').value;
+      if (loader) p.set('l', LOADER_CODES[loader] || loader);
+
+      const fallbackLoader = document.getElementById('fallback-loader')?.value;
+      if (fallbackLoader) p.set('fl', LOADER_CODES[fallbackLoader] || fallbackLoader);
+
+      if (!document.getElementById('prefer-stable').checked) p.set('s', '0');
+
+      const types = Object.entries(TYPE_CODES)
+        .filter(([, id]) => document.getElementById(id).checked)
+        .map(([code]) => code)
+        .join('');
+      if (types.length !== Object.keys(TYPE_CODES).length) p.set('t', types);
+
+      const q = p.toString();
+      const base = window.location.origin + window.location.pathname;
+      return base + (q ? '?' + q : '');
+    }
+
+    async function copyShareUrl() {
+      const url = buildShareUrl();
+      let success = false;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(url);
+          success = true;
+        } else {
+          throw new Error('Clipboard API not available');
+        }
+      } catch (err) {
+        window.prompt('Copy this link:', url);
+        success = true;
+      }
+
+      if (success) {
+        const copyBtn = document.getElementById('copy-share-btn');
+        const shareBtn = document.getElementById('share-btn');
+        const shareBtnText = document.getElementById('share-btn-text');
+
+        if (copyBtn) {
+          copyBtn.classList.add('copied');
+          copyBtn.title = 'Link copied!';
+          const iconCopy = copyBtn.querySelector('.icon-copy');
+          const iconCheck = copyBtn.querySelector('.icon-check');
+          if (iconCopy) iconCopy.style.display = 'none';
+          if (iconCheck) iconCheck.style.display = 'inline-block';
+        }
+
+        if (shareBtnText) {
+          shareBtnText.textContent = 'Link copied!';
+        }
+        if (shareBtn) {
+          shareBtn.classList.add('copied');
+        }
+
+        setTimeout(() => {
+          if (copyBtn) {
+            copyBtn.classList.remove('copied');
+            copyBtn.title = 'Copy share link';
+            const iconCopy = copyBtn.querySelector('.icon-copy');
+            const iconCheck = copyBtn.querySelector('.icon-check');
+            if (iconCopy) iconCopy.style.display = 'inline-block';
+            if (iconCheck) iconCheck.style.display = 'none';
+          }
+          if (shareBtnText) {
+            shareBtnText.textContent = 'Copy share link';
+          }
+          if (shareBtn) {
+            shareBtn.classList.remove('copied');
+          }
+        }, 2000);
+      }
+    }
+
+    applyUrlParams();
     loadMcVersions();
   </script>
 </body>
